@@ -16,25 +16,23 @@ export const TransactionSchema = z.object({
 export const TransactionQuerySchema = z.object({
   fromDate: z
     .string()
-    .datetime()
-    .transform((val) => new Date(val))
-    .optional(),
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
 
   toDate: z
     .string()
-    .datetime()
-    .transform((val) => new Date(val))
-    .optional(),
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
 
   categoryId: z
     .string()
-    .transform((val) => Number(val))
-    .optional(),
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined)),
 
   amount: z
     .string()
-    .transform((val) => Number(val))
-    .optional(),
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined)),
 
   amountType: z.enum(AMOUNT_TYPE).optional(),
 });
