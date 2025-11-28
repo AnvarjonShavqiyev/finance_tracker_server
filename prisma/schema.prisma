@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum RepeatInterval {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model User {
+  id                   Int            @id @default(autoincrement())
+  username             String
+  email                String         @unique
+  password             String
+  role                 Role           @default(USER)
+  transactions         Transaction[]  @relation("UserTransactions")
+  receivedTransactions Transaction[]  @relation("ReceiverTransactions")
+  budgets              Budget[]
+  settings             Settings?
+}
+
+model Category {
+  id           Int           @id  @default(autoincrement())
+  name         String        @unique
+  transactions Transaction[]
+  budgets      Budget[]
+}
+
+model Transaction {
+  id              Int              @id @default(autoincrement())
+  date            DateTime         @default(now())
+  description     String
+  amount          Int
+  currency        String
+  categoryId      Int?
+  category        Category? @relation(fields: [categoryId], references: [id])
+  type            TransactionType
+  userId          Int
+  user            User             @relation("UserTransactions", fields: [userId], references: [id])
+  accountId       Int
+  account         User             @relation("ReceiverTransactions", fields: [accountId], references: [id])
+  isRecurring     Boolean          @default(false)
+  repeatInterval  RepeatInterval?
+  nextTimeAt      DateTime?
+}
+
+model Budget {
+  id              Int      @id @default(autoincrement())
+  usage Int       @default(0)
+  currency        String
+  limit           Int
+  completeness    Int      @default(0)
+  categoryId      Int?
+  category        Category? @relation(fields: [categoryId], references: [id])
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, categoryId])
+}
+
+model Settings {
+  id                  Int     @id @default(autoincrement())
+  userId              Int     @unique
+  sendDailyReports    Boolean @default(false)
+  user                User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
